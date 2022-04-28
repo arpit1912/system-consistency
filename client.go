@@ -115,30 +115,31 @@ func main() {
 	wg.Add(1)
 	node := Node{all_conn: make(map[string]net.Conn), server_port: os.Args[1]}
 	node.establishConnections(&wg, os.Args[2:], os.Args[1])
-	go node.SendMessage(node.all_conn["80"], "WRITE: MSG FROM : "+node.server_port+" : "+" KRISH "+";")
+	go node.SendMessage(node.all_conn["8080"], "WRITE: MSG FROM : "+node.server_port+" : "+" KRISH "+";")
 
 	time.Sleep(5 * time.Second)
-
-	node.SendMessage(node.all_conn["80"], "READ:::;")
-	node.SendMessage(node.all_conn["81"], "READ:::;")
-	node.SendMessage(node.all_conn["82"], "READ:::;")
+	node.SendMessage(node.all_conn["8080"], "READ:::;")
+	node.SendMessage(node.all_conn["8081"], "READ:::;")
+	node.SendMessage(node.all_conn["8082"], "READ:::;")
 
 	time.Sleep(5 * time.Second)
-	go node.SendMessage(node.all_conn["81"], "WRITE: MSG FROM : "+node.server_port+" : "+" ARPIT "+";")
+	go node.SendMessage(node.all_conn["8081"], "WRITE: MSG FROM : "+node.server_port+" : "+" ARPIT "+";")
 	time.Sleep(10 * time.Second)
 
-	node.SendMessage(node.all_conn["80"], "READ:::;")
-	node.SendMessage(node.all_conn["81"], "READ:::;")
-	node.SendMessage(node.all_conn["82"], "READ:::;")
+	node.SendMessage(node.all_conn["8080"], "READ:::;")
+	node.SendMessage(node.all_conn["8081"], "READ:::;")
+	node.SendMessage(node.all_conn["8082"], "READ:::;")
 
 	time.Sleep(5 * time.Second)
-	go node.SendMessage(node.all_conn["82"], "WRITE: MSG FROM : "+node.server_port+" : "+" ANIME "+";")
+	go node.SendMessage(node.all_conn["8082"], "WRITE: MSG FROM : "+node.server_port+" : "+" ANIME "+";")
 	time.Sleep(5 * time.Second)
 
-	node.SendMessage(node.all_conn["80"], "READ:::;")
-	node.SendMessage(node.all_conn["81"], "READ:::;")
-	node.SendMessage(node.all_conn["82"], "READ:::;")
+	node.SendMessage(node.all_conn["8080"], "READ:::;")
+	node.SendMessage(node.all_conn["8081"], "READ:::;")
+	node.SendMessage(node.all_conn["8082"], "READ:::;")
 	wg.Wait()
 }
 
 //TODO: Since acks can be in out of order. i.e. the ack of diff processes come in  diff orders.
+
+//go run client.go <client-port> <prob> <server-ports>
