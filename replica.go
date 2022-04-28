@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 	"math/rand"
+	"strings"
 	"strconv"
 )
 const (
@@ -15,13 +16,13 @@ const (
 
 type Node struct {
 	server_port string
+	primary_port string
 	mu sync.Mutex
-	seq_number int
 	all_conn map[string] net.Conn
 	data string
-	ack_recieved int
-	total_replicas int
 	reciever__port string
+	local_sequence_number int
+	message_queue map[int] string
 }
 // func (node *Node) ClockIndex(port string) int {
 // 	val, _ := strconv.Atoi(port)
@@ -68,11 +69,12 @@ func delayAgent(min int, max int) {
 	time.Sleep(time.Duration(r) * time.Second)
 }
 
-func parsemessage(message string) (string,string) {
+func parsemessage(message string) (string,string, string) {
 	result := strings.Split(message, ":")
-	message_type = strings.Trim(result[0], " ")
+	message_type := strings.Trim(result[0], " ")
+	seq_num := strings.Trim(result[2], " ")
 	new_val := strings.Trim(result[3], " ")
-	return message_type, new_val
+	return message_type, seq_num, new_val
 }
 func (node *Node) listenClient(connection net.Conn, id string) {
 	for {
@@ -84,40 +86,46 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 				break
 		}
 		
-		// msg := "PREPARE: MSG FROM : " + port + ": <new-val> ;"
+		// msg := "REQUEST: MSG FROM : " + port + ": <new-val> ;"
 		messages := strings.Split(string(buffer[:mLen]),";")
 		for _,message := range(messages) {
-			node.seq_number++;
-			type, new_val := parsemessage(message)
-			if type == "PREPARE" {
-				node.data = new_val
-				msg := "UPDATE: Seq number: " + strconv.Itoa(node.seq_number) + " : " + message + " ;"
-				//TODO: instead of message above, send the data value
+			message_type, seq_num_str, new_val := parsemessage(message)
+			fmt.Println(seq_num_str)
+			if message_type == "REQUEST" {
 				node.reciever__port = id
-				node.BroadCastMessage(msg)	
-			} else if type == "ACK" {
-				node.mu.Lock()
-				node.ack_recieved++;
-				node.mu.UnLock()
-				if total_replicas == ack_recieved {
-					msg := "ACK-UPDATE;"
-					node.SendMessage(node.all_conn[node.reciever__port], msg)
-					//TODO: Reset the ack_received value
+				node.SendMessage(node.all_conn[node.primary_port], message)
+			} else if message_type == "UPDATE" {
+				seq_num, _ := strconv.Atoi(seq_num_str)
+				 
+				if node.local_sequence_number + 1 == seq_num {
+					fmt.Println("UPDATING to " + new_val)
+					node.data = new_val 
+					node.local_sequence_number++
+					msg := "ACK: SEQ_NUM: " + seq_num_str + ";"
+					node.SendMessage(node.all_conn[node.primary_port], msg)
+
+					for {
+						if data_val, found := node.message_queue[node.local_sequence_number + 1]; found {
+							node.data = data_val
+							node.local_sequence_number++
+							msg := "ACK: SEQ_NUM: " + strconv.Itoa(node.local_sequence_number) + ";"
+							node.SendMessage(node.all_conn[node.primary_port], msg)
+							delete(node.message_queue, node.local_sequence_number)
+						} else {
+							break
+						}
+					}
+				} else {
+					fmt.Println("Storing in message queue!")
+					node.message_queue[seq_num] = new_val
 				}
+			} else if message_type == "ACK-UPDATE" {
+				node.SendMessage(node.all_conn[node.reciever__port], message)
 			}
 			
 			
 		}
 	}
-	
-}
-
-func (node *Node) BroadCastMessage(message string) {
-	fmt.Println("broadcasting to replicas")
-	for port, conn := range node.all_conn {
-		fmt.Println("Sending Message to - " , port, " Seq_Number: ", node.seq_number)
-		go node.SendMessage(conn, message)
-	}	
 	
 }
 
@@ -131,10 +139,7 @@ func (node *Node) SendMessage(conn net.Conn, message string) {
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	node := Node{all_conn : make(map[string] net.Conn),  server_port : os.Args[1]}
-	//TODO: Take total_replicas from input args
+	node := Node{all_conn : make(map[string] net.Conn),  server_port : os.Args[1], primary_port: os.Args[2], local_sequence_number : 0, message_queue: make(map[int] string)}
 	go node.RecieveMessage(&wg, os.Args[1])
 	wg.Wait()
 }
-
-//TODO: Since acks can be in out of order. i.e. the ack of diff processes come in  diff orders.
