@@ -1,0 +1,84 @@
+Received UPDATE from Primary. Seq number:  1 .Value :  UFzPNnE
+UPDATING local data to : UFzPNnE
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  2 .Value :  UFzPNnE
+UPDATING local data to : UFzPNnE
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  3 .Value :  7uFRpwd
+UPDATING local data to : 7uFRpwd
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  4 .Value :  7uFRpwd
+UPDATING local data to : 7uFRpwd
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  5 .Value :  AGWOj2v
+UPDATING local data to : AGWOj2v
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  6 .Value :  AGWOj2v
+UPDATING local data to : AGWOj2v
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  7 .Value :  4IUcXGj
+UPDATING local data to : 4IUcXGj
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  8 .Value :  4IUcXGj
+UPDATING local data to : 4IUcXGj
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received WRITE from PORT :  8090 .Value :  ICTdTHA . Forwarding the message to Primary.
+Received UPDATE from Primary. Seq number:  9 .Value :  ICTdTHA
+UPDATING local data to : ICTdTHA
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received ACK-UPDATE from Primary. Forwarding the message to client at PORT :  8090
+Received WRITE from PORT :  8091 .Value :  ICTdTHA . Forwarding the message to Primary.
+Received UPDATE from Primary. Seq number:  10 .Value :  ICTdTHA
+UPDATING local data to : ICTdTHA
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received ACK-UPDATE from Primary. Forwarding the message to client at PORT :  8091
+Received UPDATE from Primary. Seq number:  11 .Value :  dlhDtJL
+UPDATING local data to : dlhDtJL
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  12 .Value :  dlhDtJL
+UPDATING local data to : dlhDtJL
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  13 .Value :  3yCiDdK
+UPDATING local data to : 3yCiDdK
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  14 .Value :  3yCiDdK
+UPDATING local data to : 3yCiDdK
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  15 .Value :  upCT7xW
+UPDATING local data to : upCT7xW
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue
+Received UPDATE from Primary. Seq number:  16 .Value :  upCT7xW
+UPDATING local data to : upCT7xW
+Sending ACK to Primary
+Checking Message queue for any pending Updates
+No matching messages in the message_queue

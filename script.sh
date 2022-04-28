@@ -33,7 +33,7 @@ all_ports="$PRIMARY_PORT $replica_ports"
 counter=1
 Client_port=8090
 while [ $counter -le $2 ]; do
-    gnome-terminal -e "go run client.go $Client_port $all_ports" &
+    gnome-terminal -e "go run client.go $Client_port $prob $all_ports" &
     ((Client_port++))
     ((counter++))
 done

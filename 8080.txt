@@ -1,0 +1,80 @@
+Received WRITE from PORT :  8090  Value :  UFzPNnE
+Broadcasting to replicas the message:  UPDATE: Seq number: 1 : UFzPNnE ;
+Received ACK from PORT :  8082  for message with seq_num :  1
+Received ACK from PORT :  8081  for message with seq_num :  1
+Received ACK from all Replicas for seq_num :  1  and data value :  UFzPNnE .Sending the ACK-UPDATE to Port No:  8090
+Received WRITE from PORT :  8091  Value :  UFzPNnE
+Broadcasting to replicas the message:  UPDATE: Seq number: 2 : UFzPNnE ;
+Received ACK from PORT :  8082  for message with seq_num :  2
+Received ACK from PORT :  8081  for message with seq_num :  2
+Received ACK from all Replicas for seq_num :  2  and data value :  UFzPNnE .Sending the ACK-UPDATE to Port No:  8091
+Received WRITE from PORT :  8090  Value :  7uFRpwd
+Broadcasting to replicas the message:  UPDATE: Seq number: 3 : 7uFRpwd ;
+Received ACK from PORT :  8082  for message with seq_num :  3
+Received ACK from PORT :  8081  for message with seq_num :  3
+Received ACK from all Replicas for seq_num :  3  and data value :  7uFRpwd .Sending the ACK-UPDATE to Port No:  8090
+Received WRITE from PORT :  8091  Value :  7uFRpwd
+Broadcasting to replicas the message:  UPDATE: Seq number: 4 : 7uFRpwd ;
+Received ACK from PORT :  8082  for message with seq_num :  4
+Received ACK from PORT :  8081  for message with seq_num :  4
+Received ACK from all Replicas for seq_num :  4  and data value :  7uFRpwd .Sending the ACK-UPDATE to Port No:  8091
+Received WRITE from PORT :  8090  Value :  AGWOj2v
+Broadcasting to replicas the message:  UPDATE: Seq number: 5 : AGWOj2v ;
+Received ACK from PORT :  8082  for message with seq_num :  5
+Received ACK from PORT :  8081  for message with seq_num :  5
+Received ACK from all Replicas for seq_num :  5  and data value :  AGWOj2v .Sending the ACK-UPDATE to Port No:  8090
+Received WRITE from PORT :  8091  Value :  AGWOj2v
+Broadcasting to replicas the message:  UPDATE: Seq number: 6 : AGWOj2v ;
+Received ACK from PORT :  8082  for message with seq_num :  6
+Received ACK from PORT :  8081  for message with seq_num :  6
+Received ACK from all Replicas for seq_num :  6  and data value :  AGWOj2v .Sending the ACK-UPDATE to Port No:  8091
+Received WRITE from PORT :  8090  Value :  4IUcXGj
+Broadcasting to replicas the message:  UPDATE: Seq number: 7 : 4IUcXGj ;
+Received ACK from PORT :  8082  for message with seq_num :  7
+Received ACK from PORT :  8081  for message with seq_num :  7
+Received ACK from all Replicas for seq_num :  7  and data value :  4IUcXGj .Sending the ACK-UPDATE to Port No:  8090
+Received WRITE from PORT :  8091  Value :  4IUcXGj
+Broadcasting to replicas the message:  UPDATE: Seq number: 8 : 4IUcXGj ;
+Received ACK from PORT :  8082  for message with seq_num :  8
+Received ACK from PORT :  8081  for message with seq_num :  8
+Received ACK from all Replicas for seq_num :  8  and data value :  4IUcXGj .Sending the ACK-UPDATE to Port No:  8091
+Received WRITE from PORT :  8081  Value :  ICTdTHA
+Broadcasting to replicas the message:  UPDATE: Seq number: 9 : ICTdTHA ;
+Received ACK from PORT :  8081  for message with seq_num :  9
+Received ACK from PORT :  8082  for message with seq_num :  9
+Received ACK from all Replicas for seq_num :  9  and data value :  ICTdTHA .Sending the ACK-UPDATE to Port No:  8081
+Received WRITE from PORT :  8081  Value :  ICTdTHA
+Broadcasting to replicas the message:  UPDATE: Seq number: 10 : ICTdTHA ;
+Received ACK from PORT :  8081  for message with seq_num :  10
+Received ACK from PORT :  8082  for message with seq_num :  10
+Received ACK from all Replicas for seq_num :  10  and data value :  ICTdTHA .Sending the ACK-UPDATE to Port No:  8081
+Received WRITE from PORT :  8082  Value :  dlhDtJL
+Broadcasting to replicas the message:  UPDATE: Seq number: 11 : dlhDtJL ;
+Received ACK from PORT :  8082  for message with seq_num :  11
+Received ACK from PORT :  8081  for message with seq_num :  11
+Received ACK from all Replicas for seq_num :  11  and data value :  dlhDtJL .Sending the ACK-UPDATE to Port No:  8082
+Received WRITE from PORT :  8082  Value :  dlhDtJL
+Broadcasting to replicas the message:  UPDATE: Seq number: 12 : dlhDtJL ;
+Received ACK from PORT :  8082  for message with seq_num :  12
+Received ACK from PORT :  8081  for message with seq_num :  12
+Received ACK from all Replicas for seq_num :  12  and data value :  dlhDtJL .Sending the ACK-UPDATE to Port No:  8082
+Received WRITE from PORT :  8082  Value :  3yCiDdK
+Broadcasting to replicas the message:  UPDATE: Seq number: 13 : 3yCiDdK ;
+Received ACK from PORT :  8081  for message with seq_num :  13
+Received ACK from PORT :  8082  for message with seq_num :  13
+Received ACK from all Replicas for seq_num :  13  and data value :  3yCiDdK .Sending the ACK-UPDATE to Port No:  8082
+Received WRITE from PORT :  8082  Value :  3yCiDdK
+Broadcasting to replicas the message:  UPDATE: Seq number: 14 : 3yCiDdK ;
+Received ACK from PORT :  8082  for message with seq_num :  14
+Received ACK from PORT :  8081  for message with seq_num :  14
+Received ACK from all Replicas for seq_num :  14  and data value :  3yCiDdK .Sending the ACK-UPDATE to Port No:  8082
+Received WRITE from PORT :  8082  Value :  upCT7xW
+Broadcasting to replicas the message:  UPDATE: Seq number: 15 : upCT7xW ;
+Received ACK from PORT :  8082  for message with seq_num :  15
+Received ACK from PORT :  8081  for message with seq_num :  15
+Received ACK from all Replicas for seq_num :  15  and data value :  upCT7xW .Sending the ACK-UPDATE to Port No:  8082
+Received WRITE from PORT :  8082  Value :  upCT7xW
+Broadcasting to replicas the message:  UPDATE: Seq number: 16 : upCT7xW ;
+Received ACK from PORT :  8081  for message with seq_num :  16
+Received ACK from PORT :  8082  for message with seq_num :  16
+Received ACK from all Replicas for seq_num :  16  and data value :  upCT7xW .Sending the ACK-UPDATE to Port No:  8082
