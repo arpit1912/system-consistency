@@ -121,6 +121,8 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 				}
 			} else if message_type == "ACK-UPDATE" {
 				node.SendMessage(node.all_conn[node.reciever__port], message)
+			} else if message_type == "READ" {
+				node.SendMessage(node.all_conn[node.reciever__port], node.data)
 			}
 			
 			
