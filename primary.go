@@ -1,37 +1,41 @@
 package main
+
 import (
 	"fmt"
-	"net"
-	"sync"
-	"os"
-	"time"
 	"math/rand"
+	"net"
+	"os"
 	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
+
 const (
-        SERVER_HOST = "localhost"
-        SERVER_TYPE = "tcp"
+	SERVER_HOST = "localhost"
+	SERVER_TYPE = "tcp"
 )
 
 type Node struct {
-	server_port string
-	mu sync.Mutex
-	seq_number int
-	all_conn map[string] net.Conn
-	data string
-	ack_recieved map[string] int
+	server_port    string
+	mu             sync.Mutex
+	seq_number     int
+	all_conn       map[string]net.Conn
+	data           string
+	ack_recieved   map[string]int
 	total_replicas int
-	reciever__port string
+	reciever__port map[string]string
 }
+
 // func (node *Node) ClockIndex(port string) int {
 // 	val, _ := strconv.Atoi(port)
 // 	return val - 80
 // }
 
-func (node *Node) RecieveMessage (wg *sync.WaitGroup, port string) {
+func (node *Node) RecieveMessage(wg *sync.WaitGroup, port string) {
 	defer wg.Done()
 	fmt.Println("Searching for available port...")
-	conn, err := net.Listen(SERVER_TYPE, SERVER_HOST + ":" + port)
+	conn, err := net.Listen(SERVER_TYPE, SERVER_HOST+":"+port)
 
 	if err != nil {
 		fmt.Println(port, " is not available to listen ")
@@ -46,13 +50,13 @@ func (node *Node) RecieveMessage (wg *sync.WaitGroup, port string) {
 			fmt.Println("Error accepting: ", err.Error())
 			os.Exit(1)
 		}
-        fmt.Println("Client connected")
+		fmt.Println("Client connected")
 		buffer := make([]byte, 1024)
 		mLen, err := client_conn.Read(buffer)
 		if err != nil {
-				fmt.Println("Error reading:", err.Error())
+			fmt.Println("Error reading:", err.Error())
 		}
-		id:= string(buffer[:mLen])
+		id := string(buffer[:mLen])
 		fmt.Println("Received Connection Request From ", id)
 		node.mu.Lock()
 		node.all_conn[id] = client_conn
@@ -68,10 +72,10 @@ func delayAgent(min int, max int) {
 	time.Sleep(time.Duration(r) * time.Second)
 }
 
-func parsemessage(message string) (string,string,string) {
+func parsemessage(message string) (string, string, string) {
 	result := strings.Split(message, ":")
-	message_type = strings.Trim(result[0], " ")
-	seq_num_str = strings.Trim(result[2], " ")
+	message_type := strings.Trim(result[0], " ")
+	seq_num_str := strings.Trim(result[2], " ")
 	new_val := strings.Trim(result[3], " ")
 	return message_type, new_val, seq_num_str
 }
@@ -80,30 +84,30 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 		buffer := make([]byte, 1024)
 		mLen, err := connection.Read(buffer)
 		if err != nil {
-				fmt.Println("Error reading:", err.Error())
-				delete(node.all_conn, id);
-				break
+			fmt.Println("Error reading:", err.Error())
+			delete(node.all_conn, id)
+			break
 		}
-		
+
 		// msg := "PREPARE: MSG FROM : " + port + ": <new-val> ;"
-		messages := strings.Split(string(buffer[:mLen]),";")
-		for _,message := range(messages) {
-			node.seq_number++;
-			type, new_val, _ := parsemessage(message)
-			if type == "PREPARE" {
+		messages := strings.Split(string(buffer[:mLen]), ";")
+		for _, message := range messages {
+			node.seq_number++
+			message_type, new_val, _ := parsemessage(message)
+			if message_type == "PREPARE" {
 				node.data = new_val
 				msg := "UPDATE: Seq number: " + strconv.Itoa(node.seq_number) + " : " + message + " ;"
 				//TODO: instead of message above, send the data value
 				node.reciever__port[strconv.Itoa(node.seq_number)] = id
-				node.BroadCastMessage(msg)	
-			} else if type == "ACK" {
+				node.BroadCastMessage(msg)
+			} else if message_type == "ACK" {
 				_, _, seq_num_str := parsemessage(message)
-				
-				node.mu.Lock()
-				node.ack_recieved[seq_num_str]++;
-				node.mu.UnLock()
 
-				for seq_num, ack_num := range node.ack_received {
+				node.mu.Lock()
+				node.ack_recieved[seq_num_str]++
+				node.mu.Unlock()
+
+				for seq_num, ack_num := range node.ack_recieved {
 
 					if node.total_replicas == ack_num {
 						msg := "ACK-UPDATE;"
@@ -113,24 +117,23 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 					}
 				}
 			}
-			
-			
+
 		}
 	}
-	
+
 }
 
 func (node *Node) BroadCastMessage(message string) {
 	fmt.Println("broadcasting to replicas")
 	for port, conn := range node.all_conn {
-		fmt.Println("Sending Message to - " , port, " Seq_Number: ", node.seq_number)
+		fmt.Println("Sending Message to - ", port, " Seq_Number: ", node.seq_number)
 		go node.SendMessage(conn, message)
-	}	
-	
+	}
+
 }
 
 func (node *Node) SendMessage(conn net.Conn, message string) {
-	delayAgent(10,15)
+	delayAgent(10, 15)
 	_, err := conn.Write([]byte(message))
 	if err != nil {
 		panic("Error sending message ;( ")
@@ -139,7 +142,8 @@ func (node *Node) SendMessage(conn net.Conn, message string) {
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	node := Node{all_conn : make(map[string] net.Conn),  server_port : os.Args[1]}
+	tot_replicas, _ := strconv.Atoi(os.Args[2])
+	node := Node{all_conn: make(map[string]net.Conn), server_port: os.Args[1], total_replicas: tot_replicas, ack_recieved: make(map[string]int), reciever__port: make(map[string]string)}
 	//TODO: Take total_replicas from input args
 	go node.RecieveMessage(&wg, os.Args[1])
 	wg.Wait()
