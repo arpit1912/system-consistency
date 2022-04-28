@@ -19,7 +19,7 @@ type Node struct {
 	seq_number int
 	all_conn map[string] net.Conn
 	data string
-	ack_recieved int
+	ack_recieved map[string] int
 	total_replicas int
 	reciever__port string
 }
@@ -68,11 +68,12 @@ func delayAgent(min int, max int) {
 	time.Sleep(time.Duration(r) * time.Second)
 }
 
-func parsemessage(message string) (string,string) {
+func parsemessage(message string) (string,string,string) {
 	result := strings.Split(message, ":")
 	message_type = strings.Trim(result[0], " ")
+	seq_num_str = strings.Trim(result[2], " ")
 	new_val := strings.Trim(result[3], " ")
-	return message_type, new_val
+	return message_type, new_val, seq_num_str
 }
 func (node *Node) listenClient(connection net.Conn, id string) {
 	for {
@@ -88,21 +89,28 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 		messages := strings.Split(string(buffer[:mLen]),";")
 		for _,message := range(messages) {
 			node.seq_number++;
-			type, new_val := parsemessage(message)
+			type, new_val, _ := parsemessage(message)
 			if type == "PREPARE" {
 				node.data = new_val
 				msg := "UPDATE: Seq number: " + strconv.Itoa(node.seq_number) + " : " + message + " ;"
 				//TODO: instead of message above, send the data value
-				node.reciever__port = id
+				node.reciever__port[strconv.Itoa(node.seq_number)] = id
 				node.BroadCastMessage(msg)	
 			} else if type == "ACK" {
+				_, _, seq_num_str := parsemessage(message)
+				
 				node.mu.Lock()
-				node.ack_recieved++;
+				node.ack_recieved[seq_num_str]++;
 				node.mu.UnLock()
-				if total_replicas == ack_recieved {
-					msg := "ACK-UPDATE;"
-					node.SendMessage(node.all_conn[node.reciever__port], msg)
-					//TODO: Reset the ack_received value
+
+				for seq_num, ack_num := range node.ack_received {
+
+					if node.total_replicas == ack_num {
+						msg := "ACK-UPDATE;"
+						node.SendMessage(node.all_conn[node.reciever__port[seq_num_str]], msg)
+						node.ack_recieved[seq_num] = 0
+						//TODO: Reset the ack_received value
+					}
 				}
 			}
 			
