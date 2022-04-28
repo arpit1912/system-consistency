@@ -116,6 +116,9 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 						//TODO: Reset the ack_received value
 					}
 				}
+			} else if message_type == "READ" {
+				msg := "READ-DONE::" + node.data + ";"
+				node.SendMessage(node.all_conn[id], msg)
 			}
 
 		}
