@@ -198,5 +198,5 @@ func main() {
 	wg.Wait()
 }
 
-// go run primary.go 80 2 81 82
+// go run primary.go 8080 2 8081 8082
 // go run primary.go <port_no> <total_replicas> <all replica ports>
