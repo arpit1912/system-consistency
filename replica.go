@@ -25,6 +25,7 @@ type Node struct {
 	reciever__port        string
 	local_sequence_number int
 	message_queue         map[int]string
+	fp                    *os.File
 }
 
 // func (node *Node) ClockIndex(port string) int {
@@ -95,40 +96,49 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 			if message == "" {
 				continue
 			}
-			fmt.Println("MESSAGE RECEIVED: ", message)
+			//fmt.Println("MESSAGE RECEIVED: ", message)
 			message_type, seq_num_str, new_val := parsemessage(message)
 			if message_type == "WRITE" {
+				fmt.Fprintln(node.fp, "Received WRITE from PORT : ", id, ".Value : ", new_val, ". Forwarding the message to Primary.")
 				node.reciever__port = id
 				//TODO: What if multiple WRITE, store receiver port in map
 				node.SendMessage(node.all_conn[node.primary_port], message)
 			} else if message_type == "UPDATE" {
 				seq_num, _ := strconv.Atoi(seq_num_str)
-
+				fmt.Fprintln(node.fp, "Received UPDATE from Primary. Seq number: ", seq_num_str, ".Value : ", new_val)
 				if node.local_sequence_number+1 == seq_num {
-					fmt.Println("UPDATING to " + new_val)
+					fmt.Fprintln(node.fp, "UPDATING local data to : "+new_val)
 					node.data = new_val
 					node.local_sequence_number++
 					msg := "ACK: SEQ_NUM: " + seq_num_str + ":;"
+					fmt.Fprintln(node.fp, "Sending ACK to Primary")
 					node.SendMessage(node.all_conn[node.primary_port], msg)
 
 					for {
+						fmt.Fprintln(node.fp, "Checking Message queue for any pending Updates")
 						if data_val, found := node.message_queue[node.local_sequence_number+1]; found {
+							fmt.Fprintln(node.fp, "A matching message found in the message_queue")
+							fmt.Fprintln(node.fp, "UPDATING local data to : "+data_val)
 							node.data = data_val
 							node.local_sequence_number++
 							msg := "ACK: SEQ_NUM: " + strconv.Itoa(node.local_sequence_number) + ":;"
+							fmt.Fprintln(node.fp, "Sending ACK to Primary")
 							node.SendMessage(node.all_conn[node.primary_port], msg)
 							delete(node.message_queue, node.local_sequence_number)
 						} else {
+							fmt.Fprintln(node.fp, "No matching messages in the message_queue")
 							break
 						}
 					}
 				} else {
-					fmt.Println("Storing in message queue!")
+					fmt.Fprintln(node.fp, "Storing the UPDATE request in message queue!")
 					node.message_queue[seq_num] = new_val
 				}
 			} else if message_type == "ACK-UPDATE" {
+				fmt.Fprintln(node.fp, "Received ACK-UPDATE from Primary. Forwarding the message to client at PORT : ", node.reciever__port)
 				node.SendMessage(node.all_conn[node.reciever__port], message)
 			} else if message_type == "READ" {
+				fmt.Fprintln(node.fp, "Received READ from PORT : ", id, " . Returning value : ", node.data)
 				msg := "READ-DONE:::" + node.data + ";"
 				node.SendMessage(node.all_conn[id], msg)
 			}
@@ -183,7 +193,8 @@ func (node *Node) establishConnections(wg *sync.WaitGroup, server_ports []string
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	node := Node{all_conn: make(map[string]net.Conn), server_port: os.Args[1], primary_port: os.Args[2], local_sequence_number: 0, message_queue: make(map[int]string)}
+	fp, _ := os.Create(os.Args[1] + ".txt")
+	node := Node{all_conn: make(map[string]net.Conn), server_port: os.Args[1], primary_port: os.Args[2], local_sequence_number: 0, message_queue: make(map[int]string), fp: fp}
 	go node.RecieveMessage(&wg, os.Args[1])
 	node.establishConnections(&wg, os.Args[3:], os.Args[1])
 	wg.Wait()
