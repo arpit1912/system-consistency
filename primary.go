@@ -25,6 +25,7 @@ type Node struct {
 	ack_recieved   map[string]int
 	total_replicas int
 	reciever__port map[string]string
+	replica_ports  []string
 }
 
 // func (node *Node) ClockIndex(port string) int {
@@ -89,15 +90,18 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 			break
 		}
 
-		// msg := "PREPARE: MSG FROM : " + port + ": <new-val> ;"
+		// msg := "WRITE: MSG FROM : " + port + ": <new-val> ;"
 		messages := strings.Split(string(buffer[:mLen]), ";")
 		for _, message := range messages {
-			node.seq_number++
+			if message == "" {
+				continue
+			}
+			fmt.Println("MESSAGE RECEIVED: ", message)
 			message_type, new_val, _ := parsemessage(message)
-			if message_type == "PREPARE" {
+			if message_type == "WRITE" {
 				node.data = new_val
-				msg := "UPDATE: Seq number: " + strconv.Itoa(node.seq_number) + " : " + message + " ;"
-				//TODO: instead of message above, send the data value
+				node.seq_number++
+				msg := "UPDATE: Seq number: " + strconv.Itoa(node.seq_number) + " : " + new_val + " ;"
 				node.reciever__port[strconv.Itoa(node.seq_number)] = id
 				node.BroadCastMessage(msg)
 			} else if message_type == "ACK" {
@@ -110,14 +114,14 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 				for seq_num, ack_num := range node.ack_recieved {
 
 					if node.total_replicas == ack_num {
-						msg := "ACK-UPDATE;"
+						msg := "ACK-UPDATE:::" + node.data + ";"
 						node.SendMessage(node.all_conn[node.reciever__port[seq_num_str]], msg)
 						node.ack_recieved[seq_num] = 0
 						//TODO: Reset the ack_received value
 					}
 				}
 			} else if message_type == "READ" {
-				msg := "READ-DONE::" + node.data + ";"
+				msg := "READ-DONE:::" + node.data + ";"
 				node.SendMessage(node.all_conn[id], msg)
 			}
 
@@ -128,28 +132,64 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 
 func (node *Node) BroadCastMessage(message string) {
 	fmt.Println("broadcasting to replicas")
-	for port, conn := range node.all_conn {
-		fmt.Println("Sending Message to - ", port, " Seq_Number: ", node.seq_number)
-		go node.SendMessage(conn, message)
+	for _, port := range node.replica_ports {
+		fmt.Println("Sending Message to - ", port, "MESSAGE : ", message)
+		go node.SendMessage(node.all_conn[port], message)
 	}
 
 }
 
 func (node *Node) SendMessage(conn net.Conn, message string) {
-	delayAgent(10, 15)
+	// delayAgent(1, 2)
 	_, err := conn.Write([]byte(message))
 	if err != nil {
 		panic("Error sending message ;( ")
 	}
 }
+
+func (node *Node) establishConnections(wg *sync.WaitGroup, server_ports []string, my_port string) {
+	fmt.Println("TRYING TO ESTABLISH CONNECTIONS WITH SERVERS")
+	for {
+		no_done := 0
+		for _, port := range server_ports {
+			node.mu.Lock()
+			_, ok := node.all_conn[port]
+			node.mu.Unlock()
+			if ok {
+				fmt.Println("Already a connection is present to - ", port)
+				no_done++
+			} else {
+				conn, err := net.Dial(SERVER_TYPE, SERVER_HOST+":"+port)
+				if err != nil {
+					fmt.Println("Error occured in connection with port: ", port)
+				} else {
+					node.mu.Lock()
+					node.all_conn[port] = conn
+					node.mu.Unlock()
+					_, err = conn.Write([]byte(my_port))
+					go node.listenClient(conn, port)
+					if err != nil {
+						panic("Error sending message ;( ")
+					}
+				}
+			}
+		}
+		if no_done == len(server_ports) {
+			fmt.Println("All Connections Ready")
+			break
+		}
+	}
+}
+
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	tot_replicas, _ := strconv.Atoi(os.Args[2])
-	node := Node{all_conn: make(map[string]net.Conn), server_port: os.Args[1], total_replicas: tot_replicas, ack_recieved: make(map[string]int), reciever__port: make(map[string]string)}
-	//TODO: Take total_replicas from input args
+	node := Node{all_conn: make(map[string]net.Conn), server_port: os.Args[1], total_replicas: tot_replicas, ack_recieved: make(map[string]int), reciever__port: make(map[string]string), replica_ports: os.Args[3:]}
 	go node.RecieveMessage(&wg, os.Args[1])
+	node.establishConnections(&wg, os.Args[3:], os.Args[1])
 	wg.Wait()
 }
 
-//TODO: Since acks can be in out of order. i.e. the ack of diff processes come in  diff orders.
+// go run primary.go 80 2 81 82
+// go run primary.go <port_no> <total_replicas> <all replica ports>
