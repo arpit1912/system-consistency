@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -16,9 +17,11 @@ const (
 )
 
 type Node struct {
-	server_port string
-	mu          sync.Mutex
-	all_conn    map[string]net.Conn
+	client_port  string
+	mu           sync.Mutex
+	all_conn     map[string]net.Conn
+	server_ports []string
+	fp           *os.File
 }
 
 func delayAgent(min int, max int) {
@@ -48,24 +51,14 @@ func (node *Node) listenClient(connection net.Conn, id string) {
 			if message == "" {
 				continue
 			}
-			fmt.Println("MESSAGE RECEIVED: ", message)
 			message_type, new_val := parsemessage(message)
 			if message_type == "ACK-UPDATE" {
-				fmt.Println("UPDATED THE DATA with " + new_val)
+				fmt.Fprintln(node.fp, "UPDATED THE DATA IN ALL SERVERS: "+new_val)
 			} else if message_type == "READ-DONE" {
-				fmt.Println("READ VALUE : ", new_val)
+				fmt.Fprintln(node.fp, "READ VALUE : ", new_val)
 			}
 		}
 	}
-}
-
-func (node *Node) BroadCastMessage(message string) {
-	fmt.Println("broadcasting to replicas")
-	for port, conn := range node.all_conn {
-		fmt.Println("Sending Message to - ", port)
-		go node.SendMessage(conn, message)
-	}
-
 }
 
 func (node *Node) SendMessage(conn net.Conn, message string) {
@@ -110,35 +103,41 @@ func (node *Node) establishConnections(wg *sync.WaitGroup, server_ports []string
 	}
 }
 
-func main() {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	node := Node{all_conn: make(map[string]net.Conn), server_port: os.Args[1]}
-	node.establishConnections(&wg, os.Args[2:], os.Args[1])
-	go node.SendMessage(node.all_conn["80"], "WRITE: MSG FROM : "+node.server_port+" : "+" KRISH "+";")
+const charset = "abcdefghijklmnopqrstuvwxyz" +
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-	time.Sleep(5 * time.Second)
-
-	node.SendMessage(node.all_conn["80"], "READ:::;")
-	node.SendMessage(node.all_conn["81"], "READ:::;")
-	node.SendMessage(node.all_conn["82"], "READ:::;")
-
-	time.Sleep(5 * time.Second)
-	go node.SendMessage(node.all_conn["81"], "WRITE: MSG FROM : "+node.server_port+" : "+" ARPIT "+";")
-	time.Sleep(10 * time.Second)
-
-	node.SendMessage(node.all_conn["80"], "READ:::;")
-	node.SendMessage(node.all_conn["81"], "READ:::;")
-	node.SendMessage(node.all_conn["82"], "READ:::;")
-
-	time.Sleep(5 * time.Second)
-	go node.SendMessage(node.all_conn["82"], "WRITE: MSG FROM : "+node.server_port+" : "+" ANIME "+";")
-	time.Sleep(5 * time.Second)
-
-	node.SendMessage(node.all_conn["80"], "READ:::;")
-	node.SendMessage(node.all_conn["81"], "READ:::;")
-	node.SendMessage(node.all_conn["82"], "READ:::;")
-	wg.Wait()
+func generate_random_string() string {
+	b := make([]byte, 7)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }
 
-//TODO: Since acks can be in out of order. i.e. the ack of diff processes come in  diff orders.
+func main() {
+	rand.Seed(time.Now().Unix())
+	var wg sync.WaitGroup
+	wg.Add(1)
+	prob, _ := strconv.ParseFloat(os.Args[2], 32)
+	fp, _ := os.Create(os.Args[1] + ".txt")
+	node := Node{all_conn: make(map[string]net.Conn), client_port: os.Args[1], server_ports: os.Args[3:], fp: fp}
+	defer fp.Close()
+	node.establishConnections(&wg, node.server_ports, os.Args[1])
+
+	for i := 0; i < 8; i++ {
+		if rand.Float64() < prob {
+			//WRITE
+			writing_port := node.server_ports[rand.Intn(len(node.server_ports))]
+			writing_val := generate_random_string()
+			fmt.Fprintln(node.fp, "Going to write : ", writing_val, "- at PORT : ", writing_port)
+			go node.SendMessage(node.all_conn[writing_port], "WRITE: MSG FROM : "+node.client_port+" : "+writing_val+";")
+
+		} else {
+			sending_port := node.server_ports[rand.Intn(len(node.server_ports))]
+			fmt.Fprintln(node.fp, "Going to read from PORT :", sending_port)
+			go node.SendMessage(node.all_conn[sending_port], "READ:::;")
+		}
+		time.Sleep(5 * time.Second)
+	}
+	wg.Wait()
+}
